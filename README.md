@@ -8,7 +8,7 @@ cd job-tracker\frontend
 npm start
 
 # POSSIBLE IMPROVEMENTS
-Instead of having the text box displayed, add a button option if the user wants to enter a text instead of a file
+Save the previous state of the page when changing pages
 Save the data for when the server is restarted
 the AI response takes a while to generate, add a feature that shows a loading icon or output what the bot is saying/thinking
 
@@ -16,7 +16,3 @@ Job Application Tracker
 - Automatically track updates from email
 - Auto fill (company and position) from link
 - Current Date set automatically
-
-Resume vs Job Description Matcher
-- Turning the AI suggestions into one-click edits to resume sections
-- Allow toggling between Concise vs Detailed mode, just add a checkbox in your UI and append an extra instruction in the prompt.

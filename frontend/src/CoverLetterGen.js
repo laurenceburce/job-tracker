@@ -10,6 +10,8 @@ function CoverLetterGen() {
   const [letterFile, setLetterFile] = useState(null);
   const [useJobText, setUseJobText] = useState(false);
   const [useLetterText, setUseLetterText] = useState(false);
+  const [liveBotMessage, setLiveBotMessage] = useState("");
+
 
   const handleGenerate = async (e) => {
     e.preventDefault();
@@ -38,8 +40,22 @@ function CoverLetterGen() {
       body: formData,
     });
 
-    const data = await res.json();
-    setLetter(data.cover_letter || "No cover letter generated.");
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let done = false;
+    let text = "";
+
+    setLiveBotMessage(""); // Reset previous text
+
+    while (!done) {
+      const { value, done: doneReading } = await reader.read();
+      done = doneReading;
+      const chunk = decoder.decode(value);
+      text += chunk;
+      setLiveBotMessage((prev) => prev + chunk);
+    }
+
+    setLetter(text || "No cover letter generated.");
     setLoading(false);
   };
 
@@ -121,10 +137,29 @@ function CoverLetterGen() {
         </button>
       </form>
 
-      {letter && (
+      {loading && (
+        <div className="mt-4">
+          <h5 className="text-secondary">AI is generating your cover letter...</h5>
+          <pre className="p-3 border rounded bg-light" style={{ whiteSpace: "pre-wrap" }}>
+            {liveBotMessage || "Thinking..."}
+          </pre>
+        </div>
+      )}
+
+      {!loading && letter && (
         <div className="mt-4">
           <h5 className="text-secondary">Generated Cover Letter:</h5>
-          <pre className="p-3 border rounded bg-light" style={{ whiteSpace: "pre-wrap" }}>{letter}</pre>
+          <pre className="p-3 border rounded bg-light" style={{ whiteSpace: "pre-wrap" }}>
+            {(() => {
+              try {
+                const parsed = JSON.parse(letter);
+                return parsed.cover_letter;
+              } catch {
+                return letter;
+              }
+            })()}
+
+          </pre>
         </div>
       )}
     </div>

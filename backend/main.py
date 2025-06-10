@@ -181,14 +181,11 @@ Instructions:
 - Use plain text, no markdown.
 - The output should only be the cover letter. No unneccessary texts.
 """
-
-
+    
     response = client.chat.completions.create(
         model = "deepseek/deepseek-r1-0528:free",
         messages=[{"role": "user", "content": prompt}]
     )
-    print("🧠 GPT RAW OUTPUT:")
-    print(full_output)
 
-
-    return {"cover_letter": response.choices[0].message.content}
+    from fastapi.responses import PlainTextResponse
+    return PlainTextResponse(response.choices[0].message.content)

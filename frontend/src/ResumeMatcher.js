@@ -10,6 +10,7 @@ function ResumeMatcher() {
   const [parsedResumeText, setParsedResumeText] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [useJobText, setUseJobText] = useState(false);
+  const [liveBotMessage, setLiveBotMessage] = useState("");
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -33,21 +34,32 @@ function ResumeMatcher() {
       method: "POST",
       body: formData,
     });
-    
-    const data = await res.json();
-    console.log("MATCH API RESPONSE:", data);
 
-    if (!data || (!data.suggestions && !data.resume_text)) {
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let done = false;
+    let text = "";
+
+    while (!done) {
+      const { value, done: doneReading } = await reader.read();
+      done = doneReading;
+      const chunk = decoder.decode(value);
+      text += chunk;
+      setLiveBotMessage((prev) => prev + chunk);
+    }
+    const finalData = JSON.parse(text);
+    console.log("MATCH API RESPONSE:", finalData);
+
+    if (!finalData || (!finalData.suggestions && !finalData.resume_text)) {
       alert("Something went wrong. GPT response missing.");
       return;
     }
 
-    if (data.result) {
-      setResult(data.result);
+    if (finalData.result) {
+      setResult(finalData.result);
     }
-    setParsedResumeText(data.resume_text || "");
-    setSuggestions(data.suggestions || []);
-
+    setParsedResumeText(finalData.resume_text || "");
+    setSuggestions(finalData.suggestions || []);
     setLoading(false);
   };
 
@@ -102,7 +114,16 @@ function ResumeMatcher() {
         </button>
       </form>
 
-      {result && (
+      {loading && (
+        <div className="mt-4">
+          <h5 className="text-secondary">AI is thinking...</h5>
+          <div className="p-3 border rounded bg-light">
+            <span className="typing-dot">🤖 {liveBotMessage || "Generating..."}</span>
+          </div>
+        </div>
+      )}
+
+      {!loading && result && (
         <div className="mt-4">
           <h5 className="text-secondary">Match Result:</h5>
           <pre className="p-3 border rounded bg-light" style={{ whiteSpace: "pre-wrap" }}>
