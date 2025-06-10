@@ -9,6 +9,7 @@ function ResumeMatcher() {
   const [jobText, setJobText] = useState("");
   const [parsedResumeText, setParsedResumeText] = useState("");
   const [suggestions, setSuggestions] = useState([]);
+  const [useJobText, setUseJobText] = useState(false);
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -69,19 +70,31 @@ function ResumeMatcher() {
           <label className="form-label">
             Job Description (Upload <code>.pdf</code>, <code>.docx</code>, or <code>.txt</code> or paste below)
           </label>
-          <input
-            type="file"
-            className="form-control mb-2"
-            accept=".txt,.pdf,.docx"
-            onChange={(e) => setJobDesc(e.target.files[0])}
-          />
-          <textarea
-            className="form-control"
-            rows="6"
-            placeholder="Or paste the job description here"
-            value={jobText}
-            onChange={(e) => setJobText(e.target.value)}
-          ></textarea>
+          <br />
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-secondary mb-2"
+            onClick={() => setUseJobText(!useJobText)}
+          >
+            {useJobText ? "Upload File Instead" : "Paste Text Instead"}
+          </button>
+
+          {useJobText ? (
+            <textarea
+              className="form-control"
+              rows="6"
+              placeholder="Paste job description here"
+              value={jobText}
+              onChange={(e) => setJobText(e.target.value)}
+            ></textarea>
+          ) : (
+            <input
+              type="file"
+              className="form-control"
+              accept=".txt,.pdf,.docx"
+              onChange={(e) => setJobDesc(e.target.files[0])}
+            />
+          )}
         </div>
 
         <button type="submit" className="btn btn-success" disabled={loading}>

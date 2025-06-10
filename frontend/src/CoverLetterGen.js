@@ -8,6 +8,8 @@ function CoverLetterGen() {
   const [jobText, setJobText] = useState("");
   const [existingLetter, setExistingLetter] = useState("");
   const [letterFile, setLetterFile] = useState(null);
+  const [useJobText, setUseJobText] = useState(false);
+  const [useLetterText, setUseLetterText] = useState(false);
 
   const handleGenerate = async (e) => {
     e.preventDefault();
@@ -55,38 +57,62 @@ function CoverLetterGen() {
           <label className="form-label">
             Job Description (Upload <code>.pdf</code>, <code>.docx</code>, or <code>.txt</code> or paste below)
           </label>
-          <input
-            type="file"
-            className="form-control mb-2"
-            accept=".txt,.pdf,.docx"
-            onChange={(e) => setJobDesc(e.target.files[0])}
-          />
-          <textarea
-            className="form-control"
-            rows="6"
-            placeholder="Or paste the job description here"
-            value={jobText}
-            onChange={(e) => setJobText(e.target.value)}
-          ></textarea>
+          <br />
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-secondary mb-2"
+            onClick={() => setUseJobText(!useJobText)}
+          >
+            {useJobText ? "Upload File Instead" : "Paste Text Instead"}
+          </button>
+
+          {useJobText ? (
+            <textarea
+              className="form-control"
+              rows="6"
+              placeholder="Paste job description here"
+              value={jobText}
+              onChange={(e) => setJobText(e.target.value)}
+            ></textarea>
+          ) : (
+            <input
+              type="file"
+              className="form-control"
+              accept=".txt,.pdf,.docx"
+              onChange={(e) => setJobDesc(e.target.files[0])}
+            />
+          )}
         </div>
 
         <div className="mb-3">
           <label className="form-label">
             (Optional) Cover Letter (Upload <code>.pdf</code>, <code>.docx</code>, or <code>.txt</code> or paste below)
           </label>
-          <input
-            type="file"
-            className="form-control mb-2"
-            accept=".txt,.pdf,.docx"
-            onChange={(e) => setLetterFile(e.target.files[0])}
-          />
-          <textarea
-            className="form-control"
-            rows="6"
-            placeholder="Or paste your existing cover letter here"
-            value={existingLetter}
-            onChange={(e) => setExistingLetter(e.target.value)}
-          ></textarea>
+          <br />
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-secondary mb-2"
+            onClick={() => setUseLetterText(!useLetterText)}
+          >
+            {useLetterText ? "Upload File Instead" : "Paste Text Instead"}
+          </button>
+
+          {useLetterText ? (
+            <textarea
+              className="form-control"
+              rows="6"
+              placeholder="Paste existing cover letter"
+              value={existingLetter}
+              onChange={(e) => setExistingLetter(e.target.value)}
+            ></textarea>
+          ) : (
+            <input
+              type="file"
+              className="form-control"
+              accept=".txt,.pdf,.docx"
+              onChange={(e) => setLetterFile(e.target.files[0])}
+            />
+          )}
         </div>
 
 
