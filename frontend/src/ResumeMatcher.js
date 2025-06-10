@@ -1,7 +1,4 @@
 import { useState } from "react";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
-
 
 function ResumeMatcher() {
   const [resume, setResume] = useState(null);
@@ -119,10 +116,15 @@ function ResumeMatcher() {
       {editableResume && (
         <div className="mt-4">
           <h5>Edit Resume:</h5>
-          <ReactQuill theme="snow" value={editableResume} onChange={setEditableResume} />
+          <textarea
+            className="form-control"
+            rows="10"
+            value={editableResume}
+            onChange={(e) => setEditableResume(e.target.value)}
+            placeholder="Edit your resume here..."
+          ></textarea>
         </div>
       )}
-
     </div>
   );
 }

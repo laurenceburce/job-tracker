@@ -161,6 +161,7 @@ Instructions:
 - Highlight matching skills.
 - If no existing letter is provided, write a new one.
 - Use plain text, no markdown.
+- The output should only be the cover letter. No unneccessary texts.
 """
 
 
