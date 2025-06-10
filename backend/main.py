@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 from utils import extract_text_from_pdf, extract_text_from_docx, extract_from_any
 from openai import OpenAI
 import os
+import json
+import re
 
 
 load_dotenv()
@@ -66,7 +68,6 @@ async def match_resume_to_job(resume: UploadFile = File(...), job_desc: UploadFi
     resume_bytes = await resume.read()
     job_bytes = await job_desc.read()
 
-    # Extract resume text
     if resume.filename.endswith(".pdf"):
         resume_text = extract_text_from_pdf(resume_bytes)
     elif resume.filename.endswith(".docx"):
@@ -74,7 +75,6 @@ async def match_resume_to_job(resume: UploadFile = File(...), job_desc: UploadFi
     else:
         resume_text = resume_bytes.decode("utf-8")
 
-    # Extract job text
     if job_desc.filename.endswith(".pdf"):
         job_text = extract_text_from_pdf(job_bytes)
     elif job_desc.filename.endswith(".docx"):
@@ -82,15 +82,14 @@ async def match_resume_to_job(resume: UploadFile = File(...), job_desc: UploadFi
     else:
         job_text = job_bytes.decode("utf-8")
 
-
     prompt = f"""
-Compare the following resume and job description and return a structured, concise response with the following:
+Compare the following resume and job description and return:
 
 1. A short match percentage and reasoning (2–3 sentences)
-2. A short list of top matched skills (bullet points, plain text)
-3. Top missing or weak areas (bullets, plain text)
-4. 2–3 specific suggestions to improve the resume — **keep it short and practical**
-5. Use only plain text formatting — no markdown, no asterisks, no bold symbols
+2. A short list of top matched skills (plain bullet points)
+3. Top missing or weak areas (plain bullet points)
+4. 2–3 specific suggestions to improve the resume
+5. Return a JSON list of actual suggested changes: `old` → `new` strings
 
 Resume:
 {resume_text}
@@ -99,13 +98,32 @@ Job Description:
 {job_text}
 """
 
-
     response = client.chat.completions.create(
-        model = "deepseek/deepseek-r1-0528:free",
+        model="deepseek/deepseek-r1-0528:free",
         messages=[{"role": "user", "content": prompt}]
     )
 
-    return {"result": response.choices[0].message.content}
+    full_output = response.choices[0].message.content
+
+    json_block = re.search(r"```json\s*(\[\s*{.*?}\s*])\s*```", full_output, re.DOTALL)
+
+    if not json_block:
+        print("No JSON block found in GPT output")
+        suggestions = []
+    else:
+        try:
+            suggestions = json.loads(json_block.group(1))
+        except Exception as e:
+            print("JSON parsing failed:", e)
+            suggestions = []
+
+    return {
+        "result": full_output.split("```json")[0].strip(),
+        "resume_text": resume_text,
+        "suggestions": suggestions
+    }
+
+
 
 @app.post("/generate-cover-letter/")
 async def generate_cover_letter(
@@ -169,5 +187,8 @@ Instructions:
         model = "deepseek/deepseek-r1-0528:free",
         messages=[{"role": "user", "content": prompt}]
     )
+    print("🧠 GPT RAW OUTPUT:")
+    print(full_output)
+
 
     return {"cover_letter": response.choices[0].message.content}

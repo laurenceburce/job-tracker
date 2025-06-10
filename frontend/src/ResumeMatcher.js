@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ResumeEditor from "./ResumeEditor";
 
 function ResumeMatcher() {
   const [resume, setResume] = useState(null);
@@ -6,9 +7,8 @@ function ResumeMatcher() {
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
   const [jobText, setJobText] = useState("");
-  const [editableResume, setEditableResume] = useState("");
+  const [parsedResumeText, setParsedResumeText] = useState("");
   const [suggestions, setSuggestions] = useState([]);
-
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -32,31 +32,37 @@ function ResumeMatcher() {
       method: "POST",
       body: formData,
     });
-
+    
     const data = await res.json();
-    setResult(data.result || "No response from GPT.");
-    const bulletSuggestions = data.result
-      .split("\n")
-      .filter(line => line.startsWith("- ") || line.startsWith("– "))
-      .map((text, index) => ({
-        id: index,
-        text,
-        applied: false,
-      }));
+    console.log("MATCH API RESPONSE:", data);
 
-    setSuggestions(bulletSuggestions);
-    setEditableResume("Paste your resume here...");
+    if (!data || (!data.suggestions && !data.resume_text)) {
+      alert("Something went wrong. GPT response missing.");
+      return;
+    }
+
+    if (data.result) {
+      setResult(data.result);
+    }
+    setParsedResumeText(data.resume_text || "");
+    setSuggestions(data.suggestions || []);
+
     setLoading(false);
   };
 
   return (
     <div className="container mt-5">
-      <h2 className="mb-3 text-primary">Resume vs Job Description Matcher</h2>
+      <h2 className="mb-3 text-primary">Resume vs Job Description Matcher + Editor</h2>
 
       <form onSubmit={handleUpload}>
         <div className="mb-3">
           <label className="form-label">Upload Resume (.pdf, .docx, or .txt)</label>
-          <input type="file" className="form-control" accept=".txt,.pdf,.docx" onChange={(e) => setResume(e.target.files[0])} />
+          <input
+            type="file"
+            className="form-control"
+            accept=".txt,.pdf,.docx"
+            onChange={(e) => setResume(e.target.files[0])}
+          />
         </div>
 
         <div className="mb-3">
@@ -81,48 +87,20 @@ function ResumeMatcher() {
         <button type="submit" className="btn btn-success" disabled={loading}>
           {loading ? "Matching..." : "Match Resume to Job"}
         </button>
-
-        <button className="btn btn-secondary mt-3" onClick={() => navigator.clipboard.writeText(editableResume)}>
-          Copy Resume Text
-        </button>
-
       </form>
 
       {result && (
         <div className="mt-4">
           <h5 className="text-secondary">Match Result:</h5>
-          <pre className="p-3 border rounded bg-light" style={{ whiteSpace: "pre-wrap" }}>{result}</pre>
-        </div>
-      )}
-      
-      {suggestions.length > 0 && (
-        <div className="mt-4">
-          <h5>Suggestions:</h5>
-          {suggestions.map((s, i) => (
-            <div key={i} className="d-flex align-items-start gap-2 my-2">
-              <button
-                className="btn btn-sm btn-outline-primary"
-                onClick={() => setEditableResume(prev => prev + "\n" + s.text)}
-                disabled={s.applied}
-              >
-                Apply
-              </button>
-              <span>{s.text}</span>
-            </div>
-          ))}
+          <pre className="p-3 border rounded bg-light" style={{ whiteSpace: "pre-wrap" }}>
+            {result}
+          </pre>
         </div>
       )}
 
-      {editableResume && (
-        <div className="mt-4">
-          <h5>Edit Resume:</h5>
-          <textarea
-            className="form-control"
-            rows="10"
-            value={editableResume}
-            onChange={(e) => setEditableResume(e.target.value)}
-            placeholder="Edit your resume here..."
-          ></textarea>
+      {parsedResumeText && (
+        <div className="mt-5">
+          <ResumeEditor originalText={parsedResumeText} suggestions={suggestions} />
         </div>
       )}
     </div>

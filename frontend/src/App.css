@@ -5,3 +5,9 @@
   border: 1px solid #ccc;
   border-radius: 10px;
 }
+
+mark {
+  background-color: #d4edda;
+  padding: 0 2px;
+  border-radius: 4px;
+}

@@ -8,6 +8,7 @@ cd job-tracker\frontend
 npm start
 
 # POSSIBLE IMPROVEMENTS
+Instead of having the text box displayed, add a button option if the user wants to enter a text instead of a file
 Save the data for when the server is restarted
 the AI response takes a while to generate, add a feature that shows a loading icon or output what the bot is saying/thinking
 
